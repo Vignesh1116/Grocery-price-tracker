@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Search, CirclePlus } from 'lucide-react';
+import { ShoppingCart, Search, CirclePlus, LayoutList } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -21,6 +21,11 @@ export default function Navbar() {
             <CirclePlus className="w-4 h-4" />
             <span>Add Entry</span>
           </Link>
+          <Link to="/entries" className="flex items-center space-x-1 text-slate-600 hover:text-primary-600 transition-colors font-medium">
+            <LayoutList className="w-4 h-4" />
+            <span>Entries</span>
+          </Link>
+
         </div>
       </div>
     </nav>

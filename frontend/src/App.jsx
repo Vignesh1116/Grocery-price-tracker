@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import SearchPage from './pages/SearchPage';
 import AddProductPage from './pages/AddProductPage';
+import EntriesPage from './pages/EntriesPage';
+
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
           <Routes>
             <Route path="/" element={<SearchPage />} />
             <Route path="/add" element={<AddProductPage />} />
+            <Route path="/entries" element={<EntriesPage />} />
+
           </Routes>
         </main>
         

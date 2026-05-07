@@ -9,6 +9,10 @@ import json
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
+@router.get("/", response_model=List[ProductResponse])
+def get_all_products(db: Session = Depends(get_db)):
+    return db.query(Product).order_by(Product.created_at.desc()).all()
+
 @router.post("/", response_model=ProductResponse)
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     db_product = Product(**product.dict())
@@ -54,3 +58,18 @@ def search_products(name: str = Query(..., min_length=1), db: Session = Depends(
     ProductService.cache_search(name, result)
 
     return result
+
+@router.delete("/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    product_name = db_product.product_name
+    db.delete(db_product)
+    db.commit()
+    
+    # Invalidate cache
+    ProductService.invalidate_cache(product_name)
+    
+    return {"message": "Product deleted successfully"}

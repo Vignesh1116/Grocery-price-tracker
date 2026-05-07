@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { Search, MapPin, Phone, TrendingDown, Info, Calendar } from 'lucide-react';
+import { Search, MapPin, Phone, TrendingDown, Info, Calendar, Trash2 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -57,6 +57,19 @@ export default function SearchPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (productId, productName) => {
+    if (!window.confirm(`Are you sure you want to delete the entry for "${productName}"?`)) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/api/products/${productId}`);
+      // Refresh search results
+      handleSearch(null);
+    } catch (err) {
+      alert('Failed to delete the product. Please try again.');
+      console.error(err);
     }
   };
 
@@ -145,6 +158,7 @@ export default function SearchPage() {
                     <th className="px-6 py-4 font-bold text-slate-700 uppercase text-xs tracking-wider">Location</th>
                     <th className="px-6 py-4 font-bold text-slate-700 uppercase text-xs tracking-wider">Date</th>
                     <th className="px-6 py-4 font-bold text-slate-700 uppercase text-xs tracking-wider">Contact</th>
+                    <th className="px-6 py-4 font-bold text-slate-700 uppercase text-xs tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -192,6 +206,15 @@ export default function SearchPage() {
                         ) : (
                           <span className="text-slate-300 italic text-sm">N/A</span>
                         )}
+                      </td>
+                      <td className="px-6 py-6 text-right">
+                        <button
+                          onClick={() => handleDelete(product.id, product.product_name)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete entry"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
