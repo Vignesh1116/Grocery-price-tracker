@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Package, Tag, Scale, Store, MapPin, Phone, CheckCircle2, AlertCircle, PlusCircle, Calendar } from 'lucide-react';
+import { Package, Tag, Scale, Store, MapPin, Phone, CircleCheck, CircleAlert, CirclePlus, Calendar } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -45,9 +45,10 @@ export default function AddProductPage() {
         quantity: parseFloat(formData.quantity)
       });
       setSuccess(true);
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => navigate(`/?search=${encodeURIComponent(formData.product_name)}`), 2000);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to add product. Please try again.');
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === 'string' ? detail : JSON.stringify(detail) || 'Failed to add product. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -62,21 +63,21 @@ export default function AddProductPage() {
             <p className="text-primary-100">Help the community by sharing local shop prices.</p>
           </div>
           <div className="absolute -top-6 -right-6 p-8 opacity-10 rotate-12">
-            <PlusCircle size={160} />
+            <CirclePlus size={160} />
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <CircleAlert className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center space-x-2">
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <CircleCheck className="w-5 h-5 flex-shrink-0" />
               <span>Entry added successfully! Redirecting...</span>
             </div>
           )}

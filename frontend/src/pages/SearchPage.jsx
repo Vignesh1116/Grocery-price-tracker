@@ -1,23 +1,56 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Search, MapPin, Phone, TrendingDown, Info, Calendar } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [userCoords, setUserCoords] = useState(null);
 
-  const handleSearch = async (e) => {
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (err) => console.error("Error getting location:", err)
+      );
+    }
+  }, []);
+
+  const getDirectionsUrl = (shopLocation) => {
+    const destination = encodeURIComponent(shopLocation);
+    if (userCoords) {
+      return `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${destination}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${destination}`;
+  };
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query) {
+      handleSearch(null, query);
+    }
+  }, [searchParams]);
+
+  const handleSearch = async (e, forcedTerm = null) => {
     if (e) e.preventDefault();
-    if (!searchTerm.trim()) return;
+    const term = forcedTerm || searchTerm;
+    if (!term.trim()) return;
 
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/products/search?name=${searchTerm}`);
+      const response = await axios.get(`${API_BASE_URL}/api/products/search?name=${term}`);
       setResults(response.data);
     } catch (err) {
       setError('Failed to fetch products. Please try again.');
@@ -36,6 +69,11 @@ export default function SearchPage() {
         <p className="text-slate-600 text-lg">
           Search for products and compare prices across different local shops.
         </p>
+        {userCoords && (
+          <div className="mt-4 inline-flex items-center bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100 animate-pulse">
+            <MapPin className="w-3 h-3 mr-1" /> Location Active (Using for distances)
+          </div>
+        )}
       </div>
 
       <div className="max-w-2xl mx-auto mb-12">
@@ -126,15 +164,23 @@ export default function SearchPage() {
                       </td>
                       <td className="px-6 py-6 font-medium text-slate-700">{product.shop_name}</td>
                       <td className="px-6 py-6">
-                        <div className="flex items-center text-slate-500 text-sm">
-                          <MapPin className="w-4 h-4 mr-1 text-slate-400" />
-                          {product.shop_location}
-                        </div>
+                        <a 
+                          href={getDirectionsUrl(product.shop_location)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center text-primary-600 hover:text-primary-700 font-medium group transition-colors"
+                          title="Get directions in Google Maps"
+                        >
+                          <MapPin className="w-4 h-4 mr-1 text-primary-500 group-hover:scale-110 transition-transform" />
+                          <span className="border-b border-transparent group-hover:border-primary-600">
+                            {product.shop_location}
+                          </span>
+                        </a>
                       </td>
                       <td className="px-6 py-6">
                         <div className="flex items-center text-slate-500 text-sm whitespace-nowrap">
                           <Calendar className="w-4 h-4 mr-1 text-slate-400" />
-                          {product.bill_date ? new Date(product.bill_date).toLocaleDateString() : 'N/A'}
+                          {product.bill_date ? new Date(product.bill_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-6">
