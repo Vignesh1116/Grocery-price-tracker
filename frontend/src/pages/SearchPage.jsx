@@ -60,18 +60,20 @@ export default function SearchPage() {
     }
   };
 
-  const handleDelete = async (productId, productName) => {
-    if (!window.confirm(`Are you sure you want to delete the entry for "${productName}"?`)) return;
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
+  const handleDelete = async (productId) => {
     try {
       await axios.delete(`${API_BASE_URL}/api/products/${productId}`);
       // Refresh search results
       handleSearch(null);
+      setDeleteConfirmId(null);
     } catch (err) {
       alert('Failed to delete the product. Please try again.');
       console.error(err);
     }
   };
+
 
   return (
     <div className="max-w-7xl mx-auto px-6 animate-fade-in">
@@ -208,14 +210,32 @@ export default function SearchPage() {
                         )}
                       </td>
                       <td className="px-6 py-6 text-right">
-                        <button
-                          onClick={() => handleDelete(product.id, product.product_name)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                          title="Delete entry"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {deleteConfirmId === product.id ? (
+                          <div className="flex items-center justify-end space-x-2 animate-in fade-in slide-in-from-right-1 duration-200">
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="text-xs font-bold text-slate-500 hover:text-slate-700 px-2 py-1"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+                            >
+                              Confirm
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(product.id)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            title="Delete entry"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
